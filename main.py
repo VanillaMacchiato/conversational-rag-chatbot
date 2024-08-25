@@ -1,16 +1,14 @@
 import os
 import streamlit as st
-from langchain_core.prompts import ChatPromptTemplate, PromptTemplate, AIMessagePromptTemplate, SystemMessagePromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_groq import ChatGroq
 from langchain_qdrant import QdrantVectorStore
 from langchain_community.embeddings import JinaEmbeddings
-from langchain_core.runnables import RunnablePassthrough, Runnable
-from langgraph.prebuilt import create_react_agent
-from langchain.tools.retriever import create_retriever_tool
+from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import MessagesPlaceholder
 from langchain.globals import set_debug
 
-set_debug(True)
+set_debug(False)
 
 qdrant_host_url = os.getenv("QDRANT_HOST_URL")
 qdrant_api_key = os.getenv("QDRANT_API_KEY")
@@ -24,8 +22,10 @@ def get_response(chain, prompt):
     for chunk in chain.stream(prompt):
         yield chunk
 
+
 def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
+
 
 st.title("The Power Company Energy Solutions - QnA Chatbot")
 
@@ -39,10 +39,12 @@ vectorstore = QdrantVectorStore.from_existing_collection(
     api_key=qdrant_api_key,
     collection_name="chatbot"
 )
-retriever = vectorstore.as_retriever(search_type="similarity_score_threshold", search_kwargs={"score_threshold": 0.8})
+retriever = vectorstore.as_retriever(
+    search_type="similarity_score_threshold", search_kwargs={"score_threshold": 0.8})
 
 if "chat_history" not in st.session_state:
-    st.session_state["chat_history"] = [{"role": "assistant", "content": "Hi! I'm The Power Company Assistant. How may I help you?"}]
+    st.session_state["chat_history"] = [
+        {"role": "assistant", "content": "Hi! I'm The Power Company Assistant. How may I help you?"}]
 
 for msg in st.session_state.chat_history:
     if msg["role"] != "system":
@@ -54,7 +56,8 @@ rag_system_prompt = "Given a question, provide an answer based on the context. I
 
 if prompt := st.chat_input():
     chat_history = st.session_state.chat_history
-    chat_history_formatted = [(chat["role"], chat["content"]) for chat in chat_history]
+    chat_history_formatted = [(chat["role"], chat["content"])
+                              for chat in chat_history]
 
     st.session_state.chat_history.append({"role": "user", "content": prompt})
     st.chat_message("user").write(prompt)
@@ -69,9 +72,8 @@ if prompt := st.chat_input():
 
     contextualize_chain = contextualize_prompt | llm
 
-    refined_prompt = contextualize_chain.invoke({"chat_history": chat_history_formatted, "input": prompt})
-
-    print("refined_prompt", refined_prompt.content)
+    refined_prompt = contextualize_chain.invoke(
+        {"chat_history": chat_history_formatted, "input": prompt})
 
     rag_chain = (
         {"context": retriever | format_docs, "question": RunnablePassthrough()}
@@ -81,5 +83,6 @@ if prompt := st.chat_input():
 
     response = rag_chain.invoke(refined_prompt.content)
 
-    st.session_state.chat_history.append({"role": "assistant", "content": response.content})
+    st.session_state.chat_history.append(
+        {"role": "assistant", "content": response.content})
     st.chat_message("assistant").write(response.content)
