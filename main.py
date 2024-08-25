@@ -14,10 +14,12 @@ prompt = ChatPromptTemplate.from_messages([("system", system), ("human", human)]
 
 chain = prompt | chat
 
-question = "How much does the electricity cost?"
+print(chain)
 
-print("Generating answer...")
-result = chain.invoke({"text": question})
+# question = "How much does the electricity cost?"
 
-print("Question:", question)
-print("Answer:", result.content)
+# print("Generating answer...")
+# result = chain.invoke({"text": question})
+
+# print("Question:", question)
+# print("Answer:", result.content)
