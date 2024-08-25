@@ -1,12 +1,12 @@
 import os
 import streamlit as st
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_groq import ChatGroq
 from langchain_qdrant import QdrantVectorStore
 from langchain_community.embeddings import JinaEmbeddings
 from langchain_core.runnables import RunnablePassthrough
-from langchain_core.prompts import MessagesPlaceholder
 from langchain.globals import set_debug
+
 
 set_debug(False)
 
